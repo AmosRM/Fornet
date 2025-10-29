@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fornet Marketing Library Generator</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import { fal } from 'https://esm.sh/@fal-ai/client';
+        window.fal = fal;
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // FAL client will be configured when API key is available
+        let falConfigured = false;
+
+        // Embedded logo as data URL - works without internet
+        const FORNET_LOGO_DATA_URL = "data:image/png;base64,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";
+
+        function MarketingLibraryGenerator() {
+            const [ideas, setIdeas] = useState([]);
+            const [savedIdeas, setSavedIdeas] = useState([]);
+            const [selectedIdea, setSelectedIdea] = useState(null);
+            const [isGenerating, setIsGenerating] = useState(false);
+            const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+            const [isEnhancingImage, setIsEnhancingImage] = useState(false);
+            const [selectedService, setSelectedService] = useState('all');
+            const [selectedCustomer, setSelectedCustomer] = useState('all');
+            const [expandedIdea, setExpandedIdea] = useState(null);
+            const [showSettings, setShowSettings] = useState(false);
+            const [apiCredentials, setApiCredentials] = useState({
+                ideaGeneratorApi: '',
+                pictureGeneratorApi: ''
+            });
+            const [selectedModels, setSelectedModels] = useState({
+                ideaModel: 'anthropic/claude-3.5-sonnet',
+                imageModel: 'fal-ai/flux/schnell'
+            });
+
+            // Services and customer segments from Fornet marketing plan
+            const services = [
+                'Wet & Dry Cleaning',
+                'Wash & Fold',
+                'Shoe Care',
+                'Repairs & Alterations',
+                'Home Care',
+                'Linen Care'
+            ];
+
+            const customerSegments = [
+              // B2C
+              "Luxury Fashion Connoisseur",
+              "Style-Conscious Fashionista",
+              "Busy Professional",
+              "Family Manager",
+              "Eco-Conscious Customer",
+              // B2B
+              "Hospitality Owner (Café/Restaurant/Catering)",
+              "Gym & Wellness Manager",
+              "Airbnb & B&B Host",
+              "Fashion Retail Store Manager",
+              "Corporate Offices",
+              "Sustainability Manager (Fashion Brand)"
+            ];
+
+            // Service-specific visual elements
+            const serviceVisuals = {
+                'Wet & Dry Cleaning': 'pristine business suits, dress shirts on hangers, professional wardrobe',
+                'Wash & Fold': 'neatly folded laundry stacks, family clothing, organized textile care',
+                'Shoe Care': 'premium sneakers, polished dress shoes, professional shoe care setup',
+                'Repairs & Alterations': 'professional tailoring, sewing machine, garment alterations',
+                'Home Care': 'clean curtains, professional home textile cleaning',
+                'Linen Care': 'luxury bed linens, hotel-quality bedding, premium fabric care'
+            };
+
+            // Customer-specific visual contexts (Keys now match customerSegments)
+            const customerVisuals = {
+                "Luxury Fashion Connoisseur": 'luxury lifestyle, high-end fashion, premium materials',
+                "Style-Conscious Fashionista": 'urban chic, trendy outfits, boutique setting',
+                "Busy Professional": 'modern office environment, professional attire, urban setting (Zuidas)',
+                "Family Manager": 'family lifestyle, organized home, laundry room, time-saving solutions',
+                "Eco-Conscious Customer": 'natural fabrics, sustainable lifestyle, minimalist aesthetic',
+                "Hospitality Owner (Café/Restaurant/Catering)": 'crisp restaurant linens, commercial kitchen textiles, elegant hospitality setting',
+                "Gym & Wellness Manager": 'fresh towels, clean workout gear, modern wellness center atmosphere',
+                "Airbnb & B&B Host": 'boutique accommodation, fresh bed linens, welcoming guest room',
+                "Fashion Retail Store Manager": 'immaculate garments on display, high-end retail interior',
+                "Corporate Offices": 'clean office environment, professional staff uniforms, corporate event linens',
+                "Sustainability Manager (Fashion Brand)": 'circular economy concept, garment lifecycle, sustainable textiles'
+            };
+
+            // Available models for each platform
+            const openRouterModels = [
+                { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+                { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet' },
+                { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku (Fast)' },
+                { id: 'openai/gpt-4o', name: 'GPT-4o' }                
+            ];
+
+            const falaiModels = [
+                { id: 'fal-ai/flux/schnell', name: 'Flux Schnell (Fast)', endpoint: 'https://fal.run/fal-ai/flux/schnell' },
+                { id: 'fal-ai/recraft/v3/text-to-image', name: 'recraft v3', endpoint: 'https://fal.run/fal-ai/recraft/v3/text-to-image' },
+                { id: 'fal-ai/flux-kontext-lora/text-to-image', name: 'Flux Kontext LoRA', endpoint: 'https://fal.run/fal-ai/flux-kontext-lora/text-to-image' },
+                { id: 'fal-ai/nano-banana/edit', name: 'Nano Banana (Image Enhancement)', endpoint: 'https://fal.run/fal-ai/nano-banana/edit' }
+            ];
+
+            // Load saved ideas, API credentials, and selected models on component mount
+            useEffect(() => {
+                const saved = localStorage.getItem('fornet-saved-ideas');
+                if (saved) setSavedIdeas(JSON.parse(saved));
+                
+                const savedCredentials = localStorage.getItem('fornet-api-credentials');
+                if (savedCredentials) setApiCredentials(JSON.parse(savedCredentials));
+
+                const savedModels = localStorage.getItem('fornet-selected-models');
+                if (savedModels) setSelectedModels(JSON.parse(savedModels));
+            }, []);
+
+            // Save to localStorage whenever savedIdeas changes
+            useEffect(() => {
+                localStorage.setItem('fornet-saved-ideas', JSON.stringify(savedIdeas));
+            }, [savedIdeas]);
+
+            // Save API credentials to localStorage whenever they change
+            useEffect(() => {
+                localStorage.setItem('fornet-api-credentials', JSON.stringify(apiCredentials));
+            }, [apiCredentials]);
+
+            // Save selected models to localStorage whenever they change
+            useEffect(() => {
+                localStorage.setItem('fornet-selected-models', JSON.stringify(selectedModels));
+            }, [selectedModels]);
+
+            const getSystemPrompt = () => {
+              const serviceFilter = selectedService !== "all" ? ` Focus ONLY on ${selectedService}.` : "";
+              const customerFilter = selectedCustomer !== "all" ? ` Target ${selectedCustomer}.` : "";
+
+              return `You are a senior marketing strategist for Fornet, a premium textile-care company in Amsterdam (Zuidas & Grachtenpand).
+            ${serviceFilter}${customerFilter}
+
+            ## BRAND & PROOF
+            - Positioning: premium textile care; strengths: quality, convenience (omnichannel P&D), sustainability, speed (1–48h), value-for-money.
+            - Social proof you may use sparingly: high stain-removal success and eco footprint claims (avoid exact % unless the user explicitly asks to include them).
+            - Main challenge: service awareness across categories.  
+
+            ## SERVICES (select relevant)
+            - Wet & Dry Cleaning (suits trend down; shirts under-penetrated)
+            - Wash & Fold (low market outsourcing, high latent need)
+            - Shoe Care (sneakers), Repairs & Alterations
+            - Home & Linen Care (curtains, duvets, bed linen; seasonal spikes and hygiene angles)
+
+            ## PERSONAS (pick 1 primary + 1 secondary)
+            - B2C: Luxury Fashion Connoisseur; Style-Conscious Fashionista; Busy Professional; Family Manager; Eco-Conscious Customer.
+            - B2B: Hospitality Owner (F&B/Catering); Gym & Wellness Manager; Airbnb/B&B Host; Fashion Retail Store Manager; Corporate Offices; Sustainability Manager (fashion brand).
+
+            ## AMSTERDAM CONTEXT
+            - Urban pros, international mix, bikes/canals, time scarcity, small apartments (washing/ironing pain), seasonal coat/duvet cycles.  
+
+            ## OUTPUT CONTRACT
+            Return **valid JSON only** with four campaign objects. Every object must include:
+              - name (≤6 words), target_service, target_persona,
+              - core_message (≤120 chars, benefit/pain-led),
+              - channel (1 of: Social, Email, Outdoor, Partnership, Event, Content, Influencer, Local PR, Seasonal),
+              - execution (2–3 tactical bullets),
+              - metrics (3 KPIs with numeric definitions),
+              - budget_eur (range string, e.g. "€1k–€3k"),
+              - timeline (≤25 words),
+              - seasonality (if relevant).  
+
+            ## STYLE
+            - Premium, clear, non-spammy, locally relevant.  
+            - No generic fluff; make tactics concrete (e.g., “LinkedIn Ads → office parks around Zuidas, M–F 7–10am”).  
+            - Respect brand: clean, modern, sustainable, fast.`;
+            };
+
+            const getUserPrompt = () => {
+              const serviceFilter = selectedService !== "all" ? ` Priority service: ${selectedService}.` : "";
+              const customerFilter = selectedCustomer !== "all" ? ` Primary persona: ${selectedCustomer}.` : "";
+
+              return `Generate four distinct, testable campaign ideas for Fornet in Amsterdam.
+            ${serviceFilter}${customerFilter}
+
+            ### Constraints
+            - Tie each idea to one service + one persona.
+            - Reflect real pain points (time, hygiene, quality, storage, seasonality).
+            - Include measurable KPIs and a realistic budget band.
+            - Prefer high-potential areas this quarter: Shirts (under-penetrated), Wash & Fold (awareness gap), Linen/duvets (seasonal hygiene).  
+
+            ### JSON schema
+            {
+              "ideas": [
+                {
+                  "name": "string <= 6 words",
+                  "target_service": "one of [Wet & Dry Cleaning | Wash & Fold | Shoe Care | Repairs & Alterations | Home Care | Linen Care]",
+                  "target_persona": "one persona label",
+                  "core_message": "string <= 120 chars",
+                  "channel": "one of [Social | Email | Outdoor | Partnership | Event | Content | Influencer | Local PR | Seasonal]",
+                  "execution": ["bullet 1", "bullet 2", "bullet 3 (optional)"],
+                  "metrics": ["KPI with number", "KPI with number", "KPI with number"],
+                  "budget_eur": "e.g., €1k–€3k",
+                  "timeline": "<= 25 words",
+                  "seasonality": "null or short note",
+                  "image_prompt": "concise visual description for image generation, 5 sentences max, no text or logos, focusing on the service, persona context, and Fornet brand colors (teal, white, light gray, orange accents)"
+                }
+              ]
+            }
+
+            Respond with **valid JSON only**.`;
+            };
+            
+            // Detailed image prompt with service and customer specific elements
+            const generateDetailedImagePrompt = (idea) => {
+                const serviceVisual = serviceVisuals[idea.target_service] || serviceVisuals['Wet & Dry Cleaning'];
+                const customerVisual = customerVisuals[idea.target_persona] || customerVisuals['Busy Professional'];
+
+                return `Premium marketing visual for Fornet textile care in Amsterdam. Campaign: ${idea.name} - ${idea.core_message}. Main subject: ${serviceVisual}. Context: ${customerVisual}. Setting: Modern Amsterdam, professional Zuidas or canal-side office backdrop. Brand colors: Teal (#008B8B), white, light gray, subtle orange accent. Style: Premium professional photography, clean minimalist luxury, bright natural lighting emphasizing cleanliness. Mood: Professional excellence, trustworthy service, modern convenience, urban sophistication. Landscape 4:3 ratio, high resolution, sharp textile details. IMPORTANT: The image must not contain any text, logos, typography, or writing.`;
+            };
+
+
+            const generateIdeas = async () => {
+                if (!apiCredentials.ideaGeneratorApi) {
+                    alert('Please set your OpenRouter API key in settings first.');
+                    setShowSettings(true);
+                    return;
+                }
+                
+                setIsGenerating(true);
+                try {
+                    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${apiCredentials.ideaGeneratorApi}`,
+                            "HTTP-Referer": window.location.href, "X-Title": "Fornet Marketing Generator"
+                        },
+                        body: JSON.stringify({
+                            model: selectedModels.ideaModel,
+                            messages: [{ role: "system", content: getSystemPrompt() }, { role: "user", content: getUserPrompt() }],
+                            max_tokens: 2048
+                        })
+                    });
+
+                    const data = await response.json();
+                    let responseText = data.choices[0].message.content;
+                    responseText = responseText.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+                    const parsedResponse = JSON.parse(responseText);
+                    const newIdeas = parsedResponse.ideas.map((idea, index) => ({
+                        ...idea, id: Date.now() + index, timestamp: new Date().toLocaleString(), starred: false
+                    }));
+                    setIdeas(newIdeas);
+                } catch (error) {
+                    console.error("Error generating ideas:", error);
+                    setIdeas([
+                        {
+                            id: Date.now(), name: "The Zuidas Shirt Refresh", target_service: "Wet & Dry Cleaning", target_persona: "Busy Professional",
+                            core_message: "Perfectly pressed shirts, ready for your week. We pick up and deliver at your office.",
+                            channel: "Partnership",
+                            execution: ["Partner with office buildings in Zuidas for exclusive pickup/delivery spots.", "Run targeted LinkedIn ads for professionals in the financial district.", "Offer a 'First 5 Shirts Free' introductory deal."],
+                            metrics: ["New B2C sign-ups from Zuidas postcodes: >50/month", "Partnership agreements: >3 buildings", "Ad CTR: >2.5%"],
+                            budget_eur: "€2k–€4k", timeline: "4-week initial campaign push", seasonality: "Strongest during standard work quarters",
+                            image_prompt: "Premium professional photography of perfectly pressed dress shirts and business suits hanging on hangers. Modern office environment backdrop in Amsterdam's Zuidas district. Teal and white color scheme with subtle orange accents. Clean, minimalist aesthetic emphasizing quality and professionalism. No text or logos visible.",
+                            timestamp: new Date().toLocaleString(), starred: false
+                        },
+                        {
+                            id: Date.now() + 1, name: "Weekend Reclaimed", target_service: "Wash & Fold", target_persona: "Family Manager",
+                            core_message: "Stop spending Saturdays on laundry. Get your family's clothes perfectly washed, folded, and delivered.",
+                            channel: "Social",
+                            execution: ["Run Meta ads targeting parents in Amsterdam neighborhoods.", "Create short-form video content showing the 'before' (laundry pile) and 'after' (neatly folded stacks).", "Collaborate with local parent influencers."],
+                            metrics: ["Weekly subscription sign-ups: >10", "Social media engagement rate: >4%", "Cost per acquisition: < €40"],
+                            budget_eur: "€1.5k–€3k", timeline: "6-week campaign flight", seasonality: "Highest during school terms",
+                            image_prompt: "Neatly folded laundry stacks in an organized, bright home setting. Clean clothes arranged by category showing order and efficiency. Warm natural lighting from Amsterdam canal-side apartment window. Teal, white, and light gray color palette with subtle orange accent. Bright and inviting atmosphere emphasizing time-saving convenience. No text or logos visible.",
+                            timestamp: new Date().toLocaleString(), starred: false
+                        }
+                    ]);
+                }
+                setIsGenerating(false);
+            };
+
+            const expandIdeaPrompt = (idea) => `Turn this Fornet campaign into an execution plan.
+
+INPUT:
+${JSON.stringify(idea, null, 2)}
+
+Return **valid JSON**:
+{
+  "audience_refinement": ["who exactly", "where", "why now"],
+  "creative": {
+    "hook": "<= 100 chars",
+    "visual_direction": "<= 60 words",
+    "assets_list": ["asset1", "asset2"]
+  },
+  "tactics": [
+    {"step": "what to do", "owner": "role", "tooling": "e.g., Meta Ads + GA4", "cost_eur": "range"}
+  ],
+  "measurement": {
+    "kpis": ["exact formula", "thresholds"],
+    "experiments": ["A/B test ...", "..."]
+  },
+  "timeline_weeks": 4,
+  "budget_eur": "range"
+}
+
+Only JSON.`;
+
+            const expandIdea = async (idea) => {
+                if (!apiCredentials.ideaGeneratorApi) {
+                    alert('Please set your OpenRouter API key in settings first.');
+                    setShowSettings(true);
+                    return;
+                }
+                
+                setExpandedIdea({ ...idea, isExpanding: true });
+                
+                try {
+                    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json", "Authorization": `Bearer ${apiCredentials.ideaGeneratorApi}`,
+                            "HTTP-Referer": window.location.href, "X-Title": "Fornet Marketing Generator"
+                        },
+                        body: JSON.stringify({
+                            model: selectedModels.ideaModel,
+                            messages: [{ role: "user", content: expandIdeaPrompt(idea) }], max_tokens: 1500
+                        })
+                    });
+
+                    const data = await response.json();
+                    let responseText = data.choices[0].message.content;
+                    responseText = responseText.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+                    const expandedData = JSON.parse(responseText);
+                    setExpandedIdea({ ...idea, ...expandedData, isExpanding: false });
+                } catch (error) {
+                    console.error("Error expanding idea:", error);
+                    setExpandedIdea({
+                        ...idea, isExpanding: false,
+                        audience_refinement: ["Fallback: Targeting busy professionals in Amsterdam's Zuidas district.", "They value time, quality, and convenience above all.", "Pain point: No time for laundry, need to look sharp for work."],
+                        creative: {
+                            hook: "Fallback: Your week is busy enough. Let us handle the dry cleaning.",
+                            visual_direction: "Fallback: Clean, professional shots of perfectly pressed shirts and suits, with subtle Zuidas backgrounds.",
+                            assets_list: ["LinkedIn carousel ad", "Email newsletter banner", "Flyer for office partnerships"]
+                        },
+                        tactics: [
+                            { step: "Launch targeted LinkedIn Ads", owner: "Marketing", tooling: "LinkedIn Ads", cost_eur: "€1.5k" },
+                            { step: "Secure office building partnerships", owner: "Sales", tooling: "CRM, Outreach", cost_eur: "€0.5k (materials)" }
+                        ],
+                        measurement: { kpis: ["Target CPA: < €50 per new customer", "Conversion Rate from landing page: > 5%"], experiments: ["A/B test ad copy: 'convenience' vs 'quality' focus."] },
+                        timeline_weeks: 4, budget_eur: idea.budget_eur || "€2k-€3k"
+                    });
+                }
+            };
+
+            const generateImage = async (idea) => {
+                if (!apiCredentials.pictureGeneratorApi) {
+                    alert('Please set your Fal.ai API key in settings first.');
+                    setShowSettings(true);
+                    return;
+                }
+                
+                setIsGeneratingImage(true);
+                
+                try {
+                    const selectedImageModel = falaiModels.find(model => model.id === selectedModels.imageModel);
+                    
+                    // Use AI-generated prompt if available, otherwise generate one
+                    let imagePrompt = idea.image_prompt || generateDetailedImagePrompt(idea);
+                    console.log(idea.image_prompt ? 'Using AI-generated image prompt' : 'Using fallback image prompt');
+                    // Clean the prompt - remove or escape problematic characters
+                    imagePrompt = imagePrompt
+                        .replace(/[#$%^&*{}[\]\\|`~]/g, '') // Remove truly problematic characters
+                        .replace(/\s+/g, ' ') // Normalize whitespace
+                        .trim();
+                    
+                    // Truncate to 1000 characters if needed (recraft v3 limit)
+                    if (imagePrompt.length > 1000) {
+                        console.warn(`Prompt length (${imagePrompt.length}) exceeds 1000 chars, truncating...`);
+                        imagePrompt = imagePrompt.substring(0, 997) + '...';
+                    }
+                    
+                    console.log(`Prompt length: ${imagePrompt.length} characters`);
+                    
+                    // Build request body based on model
+                    let requestBody = {
+                        prompt: imagePrompt,
+                        enable_safety_checker: false
+                    };
+                    
+                    // Model-specific parameters
+                    if (selectedModels.imageModel === 'fal-ai/flux/schnell') {
+                        requestBody.image_size = "landscape_4_3";
+                        requestBody.num_inference_steps = 4;
+                    } else if (selectedModels.imageModel === 'fal-ai/recraft/v3/text-to-image') {
+                        requestBody.size = "landscape_4_3";
+                        requestBody.style = "realistic_image";
+                    } else if (selectedModels.imageModel === 'fal-ai/flux-kontext-lora/text-to-image') {
+                        requestBody.width = 1024;
+                        requestBody.height = 768;
+                        requestBody.num_inference_steps = 28;
+                    } else if (selectedModels.imageModel === 'fal-ai/aura-flow') {
+                        requestBody.width = 1024;
+                        requestBody.height = 768;
+                        requestBody.num_inference_steps = 25;
+                    } else if (selectedModels.imageModel === 'fal-ai/nano-banana/edit') {
+                        // Nano Banana edit is image-to-image only, not suitable for text-to-image
+                        // This should not be reached in normal flow
+                        console.warn('Nano Banana edit selected for text-to-image generation. This model requires input images.');
+                        requestBody.num_images = 1;
+                    }
+                    
+                    console.log('Sending request to:', selectedImageModel.endpoint);
+                    console.log('Request body:', requestBody);
+                    
+                    const response = await fetch(selectedImageModel.endpoint, {
+                        method: "POST",
+                        headers: { 
+                            "Content-Type": "application/json", 
+                            "Authorization": `Key ${apiCredentials.pictureGeneratorApi}` 
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+
+                    const data = await response.json();
+                    console.log('API Response:', data);
+                    console.log('Response status:', response.status);
+                    
+                    // Check for errors in response
+                    if (!response.ok) {
+                        const errorMsg = JSON.stringify(data, null, 2);
+                        console.error('API Error:', errorMsg);
+                        console.error('Request that failed:', JSON.stringify(requestBody, null, 2));
+                        
+                        // Provide more detailed error information
+                        let detailedError = `API Error (${response.status}): `;
+                        if (data.detail) {
+                            detailedError += Array.isArray(data.detail) 
+                                ? data.detail.map(d => d.msg || JSON.stringify(d)).join('; ')
+                                : data.detail;
+                        } else if (data.error) {
+                            detailedError += data.error;
+                        } else if (data.message) {
+                            detailedError += data.message;
+                        } else {
+                            detailedError += errorMsg;
+                        }
+                        
+                        throw new Error(detailedError);
+                    }
+                    
+                    // Extract image URL based on response structure
+                    let imageUrl;
+                    if (data.images && data.images[0]) {
+                        imageUrl = data.images[0].url || data.images[0];
+                    } else if (data.image) {
+                        imageUrl = data.image.url || data.image;
+                    } else if (data.url) {
+                        imageUrl = data.url;
+                    } else {
+                        console.error('Unexpected response structure:', data);
+                        throw new Error('No image URL found in response. Check console for full response.');
+                    }
+                    
+                    console.log('Image URL:', imageUrl);
+                    setIdeas(ideas.map(i => i.id === idea.id ? { ...i, imageUrl } : i));
+                } catch (error) {
+                    console.error("Full error details:", error);
+                    
+                    // Better error message handling
+                    let errorMessage = 'Unknown error';
+                    if (error.message) {
+                        errorMessage = error.message;
+                    } else if (typeof error === 'string') {
+                        errorMessage = error;
+                    } else {
+                        errorMessage = JSON.stringify(error);
+                    }
+                    
+                    alert(`Failed to generate image: ${errorMessage}\n\nCheck browser console (F12) for full details.`);
+                    // Fallback to Unsplash
+                    const imageUrl = `https://source.unsplash.com/800x600/?${idea.target_service.replace(/\s+/g, ',').toLowerCase()}`;
+                    setIdeas(ideas.map(i => i.id === idea.id ? { ...i, imageUrl } : i));
+                }
+                
+                setIsGeneratingImage(false);
+            };
+
+            const enhanceImageWithLogo = async (generatedImageUrl, logoUrl, prompt) => {
+                if (!apiCredentials.ideaGeneratorApi) {
+                    throw new Error('OpenRouter API key not configured');
+                }
+
+                setIsEnhancingImage(true);
+                try {
+                    // Fetch generated image
+                    console.log('Fetching generated image from:', generatedImageUrl);
+                    const imageResponse = await fetch(generatedImageUrl);
+                    if (!imageResponse.ok) {
+                        throw new Error(`Failed to load generated image: ${imageResponse.status}`);
+                    }
+                    const imageBlob = await imageResponse.blob();
+                    const imageDataUrl = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.readAsDataURL(imageBlob);
+                    });
+
+                    // Handle logo - it's already a data URL
+                    let logoDataUrl;
+                    if (logoUrl.startsWith('data:')) {
+                        // Already a data URL, use it directly
+                        logoDataUrl = logoUrl;
+                        console.log('Using logo data URL directly');
+                    } else {
+                        // Fetch logo from URL
+                        console.log('Fetching logo from:', logoUrl);
+                        const logoResponse = await fetch(logoUrl);
+                        if (!logoResponse.ok) {
+                            throw new Error(`Failed to load logo: ${logoResponse.status}`);
+                        }
+                        const logoBlob = await logoResponse.blob();
+                        logoDataUrl = await new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(reader.result);
+                            reader.readAsDataURL(logoBlob);
+                        });
+                    }
+
+                    // Extract base64 from data URLs
+                    const extractBase64 = (dataUrl) => {
+                        if (dataUrl.startsWith('data:')) {
+                            return dataUrl.split(',')[1];
+                        }
+                        return dataUrl;
+                    };
+
+                    const imageBase64 = extractBase64(imageDataUrl);
+                    const logoBase64 = extractBase64(logoDataUrl);
+
+                    // Call OpenRouter Nano Banana API
+                    console.log('Calling OpenRouter Nano Banana API...');
+                    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiCredentials.ideaGeneratorApi}`,
+                            'HTTP-Referer': window.location.href,
+                            'X-Title': 'Fornet Marketing Generator'
+                        },
+                        body: JSON.stringify({
+                            model: 'google/gemini-2.5-flash-image',
+                            messages: [
+                                {
+                                    role: 'user',
+                                    content: [
+                                        {
+                                            type: 'text',
+                                            text: prompt
+                                        },
+                                        {
+                                            type: 'image_url',
+                                            image_url: { url: `data:image/png;base64,${imageBase64}` }
+                                        },
+                                        {
+                                            type: 'image_url',
+                                            image_url: { url: `data:image/png;base64,${logoBase64}` }
+                                        }
+                                    ]
+                                }
+                            ]
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`OpenRouter API error: ${JSON.stringify(errorData)}`);
+                    }
+
+                    const result = await response.json();
+                    console.log('API result:', result);
+
+                    // Extract image URL from response
+                    if (result.choices && result.choices[0] && result.choices[0].message && result.choices[0].message.content) {
+                        const content = result.choices[0].message.content;
+                        // Try to extract image URL from the response
+                        if (Array.isArray(content)) {
+                            const imageContent = content.find(item => item.type === 'image_url');
+                            if (imageContent && imageContent.image_url) {
+                                return imageContent.image_url.url;
+                            }
+                        } else if (typeof content === 'string') {
+                            // If it's a string, try to parse it as JSON or extract URL
+                            try {
+                                const parsed = JSON.parse(content);
+                                if (parsed.url) return parsed.url;
+                            } catch (e) {
+                                // Not JSON, might be a URL directly
+                                if (content.startsWith('http')) return content;
+                            }
+                        }
+                    }
+
+                    throw new Error("Unexpected API response structure for enhanced image.");
+
+                } catch (error) {
+                    console.error('Error enhancing image:', error);
+                    throw error;
+                } finally {
+                    setIsEnhancingImage(false);
+                }
+            };
+
+            const enhanceImage = async (idea) => {
+                if (!idea.imageUrl) {
+                    alert('Please generate an image first before enhancing it.');
+                    return;
+                }
+
+                try {
+                    // Use embedded logo from data URL
+                    console.log('Using embedded logo data URL');
+                    
+                    const enhancedImageUrl = await enhanceImageWithLogo(
+                        idea.imageUrl,
+                        FORNET_LOGO_DATA_URL,
+                        'Add the Fornet company logo to the bottom right corner of the image, maintaining brand consistency and professional appearance'
+                    );
+                    setIdeas(ideas.map(i => i.id === idea.id ? { ...i, enhancedImageUrl } : i));
+                } catch (error) {
+                    console.error("Enhancement error:", error);
+                    alert(`Failed to enhance image: ${error.message}\n\nCheck browser console (F12) for full details.`);
+                }
+            };
+
+            const toggleStar = (ideaId) => setIdeas(ideas.map(idea => idea.id === ideaId ? { ...idea, starred: !idea.starred } : idea));
+            const saveIdea = (idea) => { if (!savedIdeas.find(saved => saved.id === idea.id)) setSavedIdeas([...savedIdeas, { ...idea, savedAt: new Date().toLocaleString() }]); };
+            const deleteSavedIdea = (ideaId) => setSavedIdeas(savedIdeas.filter(idea => idea.id !== ideaId));
+
+            return (
+                <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+                    <div className="max-w-7xl mx-auto">
+                        {/* Header with Logo and Filters */}
+                        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 relative">
+                            <button onClick={() => setShowSettings(true)} className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" title="Settings">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            </button>
+                            <div className="flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-8">
+                                {/* Left side: Logo and Description */}
+                                <div className="flex-shrink-0">
+                                    <img src="Fornet-logo.png" alt="FORNET Logo" className="h-12 w-auto mb-3" />
+                                    <div className="text-sm text-gray-600 max-w-xs">
+                                        <p className="font-semibold text-gray-800">Marketing Library Generator</p>
+                                        <p className="text-gray-500">Generate creative campaigns for premium textile care services</p>
+                                    </div>
+                                </div>
+
+                                {/* Right side: Filters and Generate Button */}
+                                <div className="flex-1 flex flex-wrap gap-4 items-end justify-end">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Service Focus</label>
+                                        <select value={selectedService} onChange={(e) => setSelectedService(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                                            <option value="all">All Services</option>
+                                            {services.map(service => <option key={service} value={service}>{service}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Target Customer</label>
+                                        <select value={selectedCustomer} onChange={(e) => setSelectedCustomer(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                                            <option value="all">All Customers</option>
+                                            {customerSegments.map(segment => <option key={segment} value={segment}>{segment}</option>)}
+                                        </select>
+                                    </div>
+                                    <button onClick={generateIdeas} disabled={isGenerating} className="bg-teal-600 hover:bg-teal-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                        {isGenerating ? 'Generating...' : 'Generate Ideas'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            {/* Generated Ideas */}
+                            <div className="lg:col-span-2">
+                                <h2 className="text-2xl font-bold text-gray-800 mb-6">Generated Ideas</h2>
+                                {ideas.length === 0 ? (
+                                    <div className="bg-white rounded-xl shadow-lg p-8 text-center"><p className="text-gray-500 text-lg">No ideas generated yet</p><p className="text-gray-400">Click "Generate Ideas" to get started</p></div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        {ideas.map((idea) => (
+                                            <div key={idea.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                                                <div className="flex items-start justify-between mb-4">
+                                                    <div className="flex-1 pr-4">
+                                                        <h3 className="text-xl font-bold text-gray-800 mb-2">{idea.name}</h3>
+                                                        <div className="flex flex-wrap gap-2 mb-3">
+                                                            <span className="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-xs font-medium">{idea.target_service}</span>
+                                                            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">{idea.target_persona}</span>
+                                                            <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-xs font-medium">{idea.channel}</span>
+                                                        </div>
+                                                        <p className="text-gray-600 italic mb-3">"{idea.core_message}"</p>
+                                                        <div className="text-gray-700">
+                                                            <p className="font-semibold mb-1 text-sm">Execution:</p>
+                                                            <ul className="list-disc list-inside space-y-1 text-sm">
+                                                                {idea.execution?.map((step, i) => <li key={i}>{step}</li>)}
+                                                            </ul>
+                                                        </div>
+                                                        <div className="text-xs text-gray-500 mt-4 flex flex-wrap gap-x-4 gap-y-1">
+                                                            <span><strong>Budget:</strong> {idea.budget_eur}</span>
+                                                            <span><strong>Timeline:</strong> {idea.timeline}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-col sm:flex-row gap-2">
+                                                        <button onClick={() => toggleStar(idea.id)} className={`p-2 rounded-lg transition-colors ${idea.starred ? 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`} title="Star">⭐</button>
+                                                        <button onClick={() => saveIdea(idea)} className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors" title="Save">💾</button>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-wrap gap-3 mt-4">
+                                                    <button onClick={() => expandIdea(idea)} className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">Expand Idea</button>
+                                                    <button onClick={() => generateImage(idea)} disabled={isGeneratingImage} className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors text-sm">{isGeneratingImage ? 'Generating...' : 'Generate Image'}</button>
+                                                    {idea.imageUrl && (
+                                                        <button onClick={() => enhanceImage(idea)} disabled={isEnhancingImage} className="bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors text-sm">{isEnhancingImage ? 'Enhancing...' : 'Enhance Image'}</button>
+                                                    )}
+                                                </div>
+                                                {idea.enhancedImageUrl ? (
+                                                    <div className="mt-4">
+                                                        <img src={idea.enhancedImageUrl} alt={`${idea.name} - Enhanced`} className="w-full h-48 object-cover rounded-lg"/>
+                                                        <p className="text-xs text-gray-500 mt-1">Enhanced version with logo and text</p>
+                                                    </div>
+                                                ) : idea.imageUrl && (
+                                                    <div className="mt-4">
+                                                        <img src={idea.imageUrl} alt={idea.name} className="w-full h-48 object-cover rounded-lg"/>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Saved Ideas Sidebar */}
+                            <aside>
+                                <h2 className="text-2xl font-bold text-gray-800 mb-6">Saved Ideas ({savedIdeas.length})</h2>
+                                <div className="space-y-4">
+                                    {savedIdeas.length === 0 ? (
+                                        <div className="bg-white rounded-xl shadow-lg p-6 text-center"><p className="text-gray-500">No saved ideas yet</p></div>
+                                    ) : (
+                                        savedIdeas.map((idea) => (
+                                            <div key={idea.id} className="bg-white rounded-xl shadow-lg p-4 cursor-pointer hover:shadow-xl transition-shadow" onClick={() => expandIdea(idea)}>
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <h4 className="font-bold text-gray-800 text-sm pr-2">{idea.name}</h4>
+                                                    <button onClick={(e) => { e.stopPropagation(); deleteSavedIdea(idea.id); }} className="text-red-400 hover:text-red-600 transition-colors text-lg" title="Delete">🗑️</button>
+                                                </div>
+                                                <p className="text-gray-600 text-xs mb-2">{idea.target_persona}</p>
+                                                <p className="text-gray-500 text-xs">Saved: {idea.savedAt}</p>
+                                                <p className="text-teal-600 font-semibold text-xs mt-2">Click to expand</p>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </aside>
+                        </main>
+
+                        {/* Expanded Idea Modal */}
+                        {expandedIdea && (
+                            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                                <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                                    <div className="p-6">
+                                        <div className="flex items-center justify-between mb-6">
+                                            <h3 className="text-2xl font-bold text-gray-800">{expandedIdea.name}</h3>
+                                            <button onClick={() => setExpandedIdea(null)} className="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
+                                        </div>
+                                        {expandedIdea.isExpanding ? (
+                                            <div className="text-center py-8"><p className="text-gray-600">Expanding idea...</p></div>
+                                        ) : (
+                                            <div className="space-y-6 text-sm">
+                                                <div className="bg-gray-50 p-4 rounded-lg">
+                                                    <h4 className="font-bold text-gray-800 mb-2">Campaign Overview</h4>
+                                                    <p className="text-gray-600 italic mb-2">"{expandedIdea.core_message}"</p>
+                                                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                                                        <span><strong>Service:</strong> {expandedIdea.target_service}</span>
+                                                        <span><strong>Persona:</strong> {expandedIdea.target_persona}</span>
+                                                        <span><strong>Channel:</strong> {expandedIdea.channel}</span>
+                                                        <span><strong>Budget:</strong> {expandedIdea.budget_eur}</span>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-gray-800 mb-2">Audience Refinement</h4>
+                                                    <ul className="list-disc list-inside space-y-1 text-gray-700">{expandedIdea.audience_refinement?.map((point, i) => <li key={i}>{point}</li>)}</ul>
+                                                </div>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <div>
+                                                        <h4 className="font-bold text-gray-800 mb-2">Creative Direction</h4>
+                                                        <p><strong className="text-gray-600">Hook:</strong> <span className="italic">"{expandedIdea.creative?.hook}"</span></p>
+                                                        <p className="mt-2"><strong className="text-gray-600">Visuals:</strong> {expandedIdea.creative?.visual_direction}</p>
+                                                        <p className="mt-2 font-medium text-gray-600">Assets:</p>
+                                                        <ul className="list-disc list-inside text-gray-700">{expandedIdea.creative?.assets_list?.map((asset, i) => <li key={i}>{asset}</li>)}</ul>
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-bold text-gray-800 mb-2">Measurement & KPIs</h4>
+                                                        <p className="font-medium text-gray-600">KPIs:</p>
+                                                        <ul className="list-disc list-inside text-gray-700">{expandedIdea.measurement?.kpis?.map((kpi, i) => <li key={i}>{kpi}</li>)}</ul>
+                                                        <p className="mt-2 font-medium text-gray-600">Experiments:</p>
+                                                        <ul className="list-disc list-inside text-gray-700">{expandedIdea.measurement?.experiments?.map((exp, i) => <li key={i}>{exp}</li>)}</ul>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-gray-800 mb-2">Tactical Plan</h4>
+                                                    <div className="overflow-x-auto">
+                                                        <table className="w-full text-left border-collapse">
+                                                            <thead>
+                                                                <tr className="bg-gray-100"><th className="p-2 border">Step</th><th className="p-2 border">Owner</th><th className="p-2 border">Tooling</th><th className="p-2 border">Cost (EUR)</th></tr>
+                                                            </thead>
+                                                            <tbody>{expandedIdea.tactics?.map((t, i) => <tr key={i} className="hover:bg-gray-50"><td className="p-2 border">{t.step}</td><td className="p-2 border">{t.owner}</td><td className="p-2 border">{t.tooling}</td><td className="p-2 border">{t.cost_eur}</td></tr>)}</tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Settings Modal */}
+                        {showSettings && (
+                            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                                <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+                                    <div className="p-6">
+                                        <div className="flex items-center justify-between mb-6"><h3 className="text-2xl font-bold text-gray-800">API Settings</h3><button onClick={() => setShowSettings(false)} className="text-gray-400 hover:text-gray-600 text-3xl">&times;</button></div>
+                                        <div className="space-y-4">
+                                            <div><label className="block text-sm font-medium text-gray-700 mb-2">OpenRouter API Key</label><input type="password" value={apiCredentials.ideaGeneratorApi} onChange={(e) => setApiCredentials({ ...apiCredentials, ideaGeneratorApi: e.target.value })} placeholder="Enter your OpenRouter API key..." className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent" /><p className="text-xs text-gray-500 mt-1">Used for generating marketing ideas.</p></div>
+                                            <div><label className="block text-sm font-medium text-gray-700 mb-2">Idea Generation Model</label><select value={selectedModels.ideaModel} onChange={(e) => setSelectedModels({ ...selectedModels, ideaModel: e.target.value })} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent">{openRouterModels.map(model => <option key={model.id} value={model.id}>{model.name}</option>)}</select></div>
+                                            <div><label className="block text-sm font-medium text-gray-700 mb-2">Fal.ai API Key</label><input type="password" value={apiCredentials.pictureGeneratorApi} onChange={(e) => setApiCredentials({ ...apiCredentials, pictureGeneratorApi: e.target.value })} placeholder="Enter your Fal.ai API key..." className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent" /><p className="text-xs text-gray-500 mt-1">Used for generating marketing images.</p></div>
+                                            <div><label className="block text-sm font-medium text-gray-700 mb-2">Image Generation Model</label><select value={selectedModels.imageModel} onChange={(e) => setSelectedModels({ ...selectedModels, imageModel: e.target.value })} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent">{falaiModels.map(model => <option key={model.id} value={model.id}>{model.name}</option>)}</select></div>
+                                            <div className="pt-4"><button onClick={() => setShowSettings(false)} className="w-full bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg transition-colors">Save Settings</button></div>
+                                            <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg"><p className="font-medium mb-1">API Key Security:</p><p>Your API keys are stored locally in your browser and never sent to our servers.</p></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<MarketingLibraryGenerator />, document.getElementById('root'));
+    </script>
+</body>
+</html>
