@@ -23,6 +23,7 @@
         let falConfigured = false;
 
         // Embedded logo as data URL - works without internet
+        const DIAGNOSTIC_TEST_IMAGE_DATA_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==';
         const FORNET_LOGO_DATA_URL = "data:image/png;base64,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";
 
         function MarketingLibraryGenerator() {
@@ -32,6 +33,7 @@
             const [isGenerating, setIsGenerating] = useState(false);
             const [isGeneratingImage, setIsGeneratingImage] = useState(false);
             const [isEnhancingImage, setIsEnhancingImage] = useState(false);
+            const [isTestingEnhancement, setIsTestingEnhancement] = useState(false);
             const [selectedService, setSelectedService] = useState('all');
             const [selectedCustomer, setSelectedCustomer] = useState('all');
             const [expandedIdea, setExpandedIdea] = useState(null);
@@ -489,32 +491,40 @@ Only JSON.`;
                 setIsGeneratingImage(false);
             };
 
-            const enhanceImageWithLogo = async (generatedImageUrl, logoUrl, prompt) => {
+            const enhanceImageWithLogo = async (generatedImageUrl, logoUrl, prompt, options = {}) => {
                 if (!apiCredentials.pictureGeneratorApi) {
                     throw new Error('Fal.ai API key not configured');
                 }
 
-                setIsEnhancingImage(true);
+                const { manageEnhancingState = true } = options;
+
+                if (manageEnhancingState) {
+                    setIsEnhancingImage(true);
+                }
                 try {
                     let primaryImageSource = generatedImageUrl;
 
-                    // Fetch generated image and convert to data URL when possible
-                    try {
-                        console.log('Fetching generated image from:', generatedImageUrl);
-                        const imageResponse = await fetch(generatedImageUrl);
-                        if (!imageResponse.ok) {
-                            throw new Error(`Failed to load generated image: ${imageResponse.status}`);
+                    if (generatedImageUrl.startsWith('data:')) {
+                        console.log('Using provided data URL for generated image');
+                    } else {
+                        // Fetch generated image and convert to data URL when possible
+                        try {
+                            console.log('Fetching generated image from:', generatedImageUrl);
+                            const imageResponse = await fetch(generatedImageUrl);
+                            if (!imageResponse.ok) {
+                                throw new Error(`Failed to load generated image: ${imageResponse.status}`);
+                            }
+                            const imageBlob = await imageResponse.blob();
+                            const imageDataUrl = await new Promise((resolve) => {
+                                const reader = new FileReader();
+                                reader.onload = () => resolve(reader.result);
+                                reader.readAsDataURL(imageBlob);
+                            });
+                            primaryImageSource = imageDataUrl;
+                            console.log('Converted generated image to data URL');
+                        } catch (imageLoadError) {
+                            console.warn('Could not convert generated image to data URL. Using original URL instead.', imageLoadError);
                         }
-                        const imageBlob = await imageResponse.blob();
-                        const imageDataUrl = await new Promise((resolve) => {
-                            const reader = new FileReader();
-                            reader.onload = () => resolve(reader.result);
-                            reader.readAsDataURL(imageBlob);
-                        });
-                        primaryImageSource = imageDataUrl;
-                        console.log('Converted generated image to data URL');
-                    } catch (imageLoadError) {
-                        console.warn('Could not convert generated image to data URL. Using original URL instead.', imageLoadError);
                     }
 
                     // Handle logo - it's already a data URL
@@ -559,6 +569,7 @@ Only JSON.`;
                         ];
                     }
 
+                    console.log('Enhancement request payload:', requestBody);
                     console.log('Enhancing image with nano-banana/edit');
                     console.log('Number of images being sent:', requestBody.image_urls.length);
                     const response = await fetch('https://fal.run/fal-ai/nano-banana/edit', {
@@ -567,7 +578,7 @@ Only JSON.`;
                             'Content-Type': 'application/json',
                             'Authorization': `Key ${apiCredentials.pictureGeneratorApi}`
                         },
-                        body: JSON.stringify(requestBody)
+                        body: JSON.stringify({ input: requestBody })
                     });
 
                     const textResponse = await response.text();
@@ -589,7 +600,11 @@ Only JSON.`;
                         let errorMessage = '';
                         if (data.detail) {
                             if (Array.isArray(data.detail)) {
-                                errorMessage = data.detail.map(d => d.msg || JSON.stringify(d)).join('; ');
+                                errorMessage = data.detail.map(d => {
+                                    const location = Array.isArray(d.loc) ? d.loc.join('.') : '';
+                                    const message = d.msg || JSON.stringify(d);
+                                    return location ? `${location}: ${message}` : message;
+                                }).join('; ');
                             } else if (typeof data.detail === 'string') {
                                 errorMessage = data.detail;
                             } else {
@@ -624,7 +639,35 @@ Only JSON.`;
                     console.error('Error enhancing image:', error);
                     throw error;
                 } finally {
-                    setIsEnhancingImage(false);
+                    if (manageEnhancingState) {
+                        setIsEnhancingImage(false);
+                    }
+                }
+            };
+
+            const testEnhancementConnection = async () => {
+                if (!apiCredentials.pictureGeneratorApi) {
+                    alert('Please set your Fal.ai API key in settings first.');
+                    setShowSettings(true);
+                    return;
+                }
+
+                setIsTestingEnhancement(true);
+                try {
+                    const diagnosticUrl = await enhanceImageWithLogo(
+                        DIAGNOSTIC_TEST_IMAGE_DATA_URL,
+                        FORNET_LOGO_DATA_URL,
+                        'Diagnostic test: place the Fornet logo on a plain background for verification.',
+                        { manageEnhancingState: false }
+                    );
+
+                    console.log('Fal.ai diagnostic enhancement URL:', diagnosticUrl);
+                    alert('Fal.ai enhancement test succeeded! Check the console for the diagnostic image URL.');
+                } catch (error) {
+                    console.error('Fal.ai enhancement diagnostic error:', error);
+                    alert(`Fal.ai enhancement test failed: ${error.message}`);
+                } finally {
+                    setIsTestingEnhancement(false);
                 }
             };
 
@@ -849,6 +892,11 @@ Only JSON.`;
                                             <div><label className="block text-sm font-medium text-gray-700 mb-2">Fal.ai API Key</label><input type="password" value={apiCredentials.pictureGeneratorApi} onChange={(e) => setApiCredentials({ ...apiCredentials, pictureGeneratorApi: e.target.value })} placeholder="Enter your Fal.ai API key..." className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent" /><p className="text-xs text-gray-500 mt-1">Used for generating marketing images.</p></div>
                                             <div><label className="block text-sm font-medium text-gray-700 mb-2">Image Generation Model</label><select value={selectedModels.imageModel} onChange={(e) => setSelectedModels({ ...selectedModels, imageModel: e.target.value })} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent">{falaiModels.map(model => <option key={model.id} value={model.id}>{model.name}</option>)}</select></div>
                                             <div className="pt-4"><button onClick={() => setShowSettings(false)} className="w-full bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg transition-colors">Save Settings</button></div>
+                                            <div className="mt-4 border-t border-gray-200 pt-4">
+                                                <h4 className="text-sm font-semibold text-gray-700 mb-2">Fal.ai quick test</h4>
+                                                <p className="text-xs text-gray-500 mb-3">Run a lightweight enhancement call with an embedded sample image to verify your API key without generating a full campaign.</p>
+                                                <button onClick={testEnhancementConnection} disabled={isTestingEnhancement} className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors">{isTestingEnhancement ? 'Testing Fal.ai…' : 'Run enhancement test'}</button>
+                                            </div>
                                             <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg"><p className="font-medium mb-1">API Key Security:</p><p>Your API keys are stored locally in your browser and never sent to our servers.</p></div>
                                         </div>
                                     </div>
